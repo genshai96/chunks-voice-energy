@@ -13,9 +13,9 @@ const emojis = {
 };
 
 const feedbackText = {
-  excellent: { en: 'Excellent!', vi: 'Xuất sắc!' },
-  good: { en: 'Good effort', vi: 'Khá tốt' },
-  poor: { en: 'Keep practicing', vi: 'Cần cải thiện' },
+  excellent: { en: 'High Energy!', vi: 'Năng lượng cao!' },
+  good: { en: 'Good Energy', vi: 'Năng lượng ổn' },
+  poor: { en: 'Low Energy', vi: 'Năng lượng thấp' },
 };
 
 const feedbackColors = {
