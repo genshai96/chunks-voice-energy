@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { Mic, Square, Loader2 } from 'lucide-react';
+import { motion } from "framer-motion";
+import { Mic, Square, Loader2 } from "lucide-react";
 
 interface RecordButtonProps {
   isRecording: boolean;
@@ -9,13 +9,7 @@ interface RecordButtonProps {
   onStop: () => void;
 }
 
-export function RecordButton({ 
-  isRecording, 
-  isProcessing,
-  audioLevel, 
-  onStart, 
-  onStop 
-}: RecordButtonProps) {
+export function RecordButton({ isRecording, isProcessing, audioLevel, onStart, onStop }: RecordButtonProps) {
   const handleClick = () => {
     if (isProcessing) return;
     if (isRecording) {
@@ -83,11 +77,12 @@ export function RecordButton({
         className={`
           relative z-10 w-32 h-32 rounded-full flex items-center justify-center
           transition-all duration-300 cursor-pointer
-          ${isRecording 
-            ? 'bg-destructive recording-pulse' 
-            : isProcessing
-              ? 'bg-muted cursor-not-allowed'
-              : 'gradient-primary energy-glow hover:scale-105'
+          ${
+            isRecording
+              ? "bg-destructive recording-pulse"
+              : isProcessing
+                ? "bg-muted cursor-not-allowed"
+                : "gradient-primary energy-glow hover:scale-105"
           }
         `}
         whileTap={{ scale: 0.95 }}
@@ -111,12 +106,7 @@ export function RecordButton({
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        {isProcessing 
-          ? 'Đang phân tích...' 
-          : isRecording 
-            ? 'Nhấn để dừng' 
-            : 'Nhấn để ghi âm'
-        }
+        {isProcessing ? "Analyzing..." : isRecording ? "Stop" : "Record"}
       </motion.p>
     </div>
   );
