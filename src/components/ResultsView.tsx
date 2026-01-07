@@ -85,16 +85,25 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <div className="flex justify-between items-center gap-2">
+        <div className="flex justify-between items-center gap-4">
           {metrics.map((metric) => {
             const IconComponent = metric.icon;
+            const shortValue = metric.tag === "POWER" 
+              ? `${results.volume.averageDb.toFixed(0)}dB`
+              : metric.tag === "TEMPO"
+              ? `${results.speechRate.wordsPerMinute}WPM`
+              : metric.tag === "BOOST"
+              ? (results.acceleration.isAccelerating ? "↑" : "→")
+              : metric.tag === "SPARK"
+              ? `${results.responseTime.responseTimeMs}ms`
+              : `${results.pauseManagement.pauseCount}`;
             return (
               <div key={metric.tag} className="flex flex-col items-center gap-1">
-                <IconComponent className={`w-5 h-5 ${getScoreColor(metric.score)}`} />
-                <span className={`text-sm font-bold ${getScoreColor(metric.score)}`}>
+                <IconComponent className={`w-6 h-6 ${getScoreColor(metric.score)}`} />
+                <span className={`text-xl font-bold ${getScoreColor(metric.score)}`}>
                   {metric.score}
                 </span>
-                <span className="text-[10px] text-muted-foreground">{metric.tag}</span>
+                <span className="text-xs text-muted-foreground">{shortValue}</span>
               </div>
             );
           })}
