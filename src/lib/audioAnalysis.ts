@@ -206,14 +206,22 @@ export function calculateSpeechRate(
   const IDEAL_MAX = IDEAL_WPM + 20;
   
   let score: number;
-  if (wordsPerMinute < MIN_WPM || wordsPerMinute > MAX_WPM) {
-    score = Math.max(0, 50 - Math.abs(wordsPerMinute - IDEAL_WPM) / 2);
-  } else if (wordsPerMinute >= IDEAL_MIN && wordsPerMinute <= IDEAL_MAX) {
+  if (wordsPerMinute >= IDEAL_MIN && wordsPerMinute <= IDEAL_MAX) {
+    // Perfect range: 100 points
     score = 100;
+  } else if (wordsPerMinute < MIN_WPM) {
+    // Too slow: scale from 0 to partial score
+    score = Math.max(0, (wordsPerMinute / MIN_WPM) * 50);
+  } else if (wordsPerMinute > MAX_WPM) {
+    // Too fast: scale down based on how far over MAX
+    const overMax = wordsPerMinute - MAX_WPM;
+    score = Math.max(0, 50 - overMax);
   } else if (wordsPerMinute < IDEAL_MIN) {
-    score = ((wordsPerMinute - MIN_WPM) / (IDEAL_MIN - MIN_WPM)) * 100;
+    // Between MIN and IDEAL_MIN: scale 50-100
+    score = 50 + ((wordsPerMinute - MIN_WPM) / (IDEAL_MIN - MIN_WPM)) * 50;
   } else {
-    score = ((MAX_WPM - wordsPerMinute) / (MAX_WPM - IDEAL_MAX)) * 100;
+    // Between IDEAL_MAX and MAX: scale 100-50
+    score = 100 - ((wordsPerMinute - IDEAL_MAX) / (MAX_WPM - IDEAL_MAX)) * 50;
   }
   
   return {
@@ -250,14 +258,17 @@ export async function calculateSpeechRateWithSTT(
     const IDEAL_MAX = IDEAL_WPM + 20;
     
     let score: number;
-    if (wordsPerMinute < MIN_WPM || wordsPerMinute > MAX_WPM) {
-      score = Math.max(0, 50 - Math.abs(wordsPerMinute - IDEAL_WPM) / 2);
-    } else if (wordsPerMinute >= IDEAL_MIN && wordsPerMinute <= IDEAL_MAX) {
+    if (wordsPerMinute >= IDEAL_MIN && wordsPerMinute <= IDEAL_MAX) {
       score = 100;
+    } else if (wordsPerMinute < MIN_WPM) {
+      score = Math.max(0, (wordsPerMinute / MIN_WPM) * 50);
+    } else if (wordsPerMinute > MAX_WPM) {
+      const overMax = wordsPerMinute - MAX_WPM;
+      score = Math.max(0, 50 - overMax);
     } else if (wordsPerMinute < IDEAL_MIN) {
-      score = ((wordsPerMinute - MIN_WPM) / (IDEAL_MIN - MIN_WPM)) * 100;
+      score = 50 + ((wordsPerMinute - MIN_WPM) / (IDEAL_MIN - MIN_WPM)) * 50;
     } else {
-      score = ((MAX_WPM - wordsPerMinute) / (MAX_WPM - IDEAL_MAX)) * 100;
+      score = 100 - ((wordsPerMinute - IDEAL_MAX) / (MAX_WPM - IDEAL_MAX)) * 50;
     }
     
     return {
@@ -550,13 +561,13 @@ export function analyzeAudio(audioBuffer: Float32Array, sampleRate: number): Ana
   const responseWeight = (config.find(m => m.id === 'responseTime')?.weight ?? 10) / 100;
   const pauseWeight = (config.find(m => m.id === 'pauseManagement')?.weight ?? 15) / 100;
   
-  const overallScore = Math.round(
+  const overallScore = Math.min(100, Math.round(
     volume.score * volumeWeight +
     speechRate.score * speechWeight +
     acceleration.score * accelerationWeight +
     responseTime.score * responseWeight +
     pauseManagement.score * pauseWeight
-  );
+  ));
   
   let emotionalFeedback: 'excellent' | 'good' | 'poor';
   if (overallScore >= 71) {
@@ -609,13 +620,13 @@ export async function analyzeAudioAsync(
   const responseWeight = (config.find(m => m.id === 'responseTime')?.weight ?? 10) / 100;
   const pauseWeight = (config.find(m => m.id === 'pauseManagement')?.weight ?? 15) / 100;
   
-  const overallScore = Math.round(
+  const overallScore = Math.min(100, Math.round(
     volume.score * volumeWeight +
     speechRate.score * speechWeight +
     acceleration.score * accelerationWeight +
     responseTime.score * responseWeight +
     pauseManagement.score * pauseWeight
-  );
+  ));
   
   let emotionalFeedback: 'excellent' | 'good' | 'poor';
   if (overallScore >= 71) {
