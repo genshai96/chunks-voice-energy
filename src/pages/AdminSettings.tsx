@@ -309,25 +309,34 @@ export default function AdminSettings() {
                       />
                     </div>
 
-                    {/* Max Threshold */}
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="text-sm font-medium text-foreground">
-                          Maximum ({currentMetric.labels.high})
-                        </label>
-                        <span className="text-sm text-muted-foreground">
-                          {currentMetric.thresholds.max} {currentMetric.unit}
-                        </span>
+                    {/* Max Threshold - Hidden for speechRate since >= target = 100% */}
+                    {currentMetric.id !== 'speechRate' && (
+                      <div>
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-sm font-medium text-foreground">
+                            Maximum ({currentMetric.labels.high})
+                          </label>
+                          <span className="text-sm text-muted-foreground">
+                            {currentMetric.thresholds.max} {currentMetric.unit}
+                          </span>
+                        </div>
+                        <Slider
+                          value={[currentMetric.thresholds.max]}
+                          onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'max', v)}
+                          min={currentMetric.id === 'volume' ? -60 : 0}
+                          max={currentMetric.id === 'volume' ? 0 : 300}
+                          step={1}
+                          className="w-full"
+                        />
                       </div>
-                      <Slider
-                        value={[currentMetric.thresholds.max]}
-                        onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'max', v)}
-                        min={currentMetric.id === 'volume' ? -60 : 0}
-                        max={currentMetric.id === 'volume' ? 0 : 300}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
+                    )}
+                    {currentMetric.id === 'speechRate' && (
+                      <div className="p-4 rounded-lg bg-energy-green/10 border border-energy-green/30">
+                        <p className="text-sm text-energy-green">
+                          ✓ No maximum limit - reaching target WPM gives 100% score
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
 
