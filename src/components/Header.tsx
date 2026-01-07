@@ -1,7 +1,7 @@
-import { motion } from 'framer-motion';
-import { Zap, Settings } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { motion } from "framer-motion";
+import { Zap, Settings } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export function Header() {
   return (
@@ -14,18 +14,18 @@ export function Header() {
       <div className="flex items-center justify-between max-w-md mx-auto">
         {/* Empty spacer for balance */}
         <div className="w-10" />
-        
+
         {/* Logo */}
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
             <motion.div
               className="p-2 rounded-xl gradient-primary energy-glow"
-              animate={{ 
+              animate={{
                 boxShadow: [
-                  '0 0 20px hsl(190 100% 50% / 0.3)',
-                  '0 0 40px hsl(190 100% 50% / 0.5)',
-                  '0 0 20px hsl(190 100% 50% / 0.3)',
-                ]
+                  "0 0 20px hsl(190 100% 50% / 0.3)",
+                  "0 0 40px hsl(190 100% 50% / 0.5)",
+                  "0 0 20px hsl(190 100% 50% / 0.3)",
+                ],
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
@@ -33,20 +33,18 @@ export function Header() {
             </motion.div>
             <h1 className="text-3xl font-display font-bold">
               <span className="bg-gradient-to-r from-primary via-energy-cyan-glow to-accent bg-clip-text text-transparent">
-                ĐIỆN ÁP
+                CHUNKS
               </span>
             </h1>
           </div>
-          <p className="text-muted-foreground text-sm">
-            Voice Energy Measurement
-          </p>
+          <p className="text-muted-foreground text-sm">Voice Energy Measurement</p>
         </div>
-        
+
         {/* Settings Button */}
         <Link to="/admin">
-          <Button 
-            variant="ghost" 
-            size="icon" 
+          <Button
+            variant="ghost"
+            size="icon"
             className="text-muted-foreground hover:text-foreground hover:bg-secondary"
           >
             <Settings className="w-5 h-5" />
