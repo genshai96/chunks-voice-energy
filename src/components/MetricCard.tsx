@@ -8,6 +8,7 @@ interface MetricCardProps {
   tag: string;
   value?: string;
   index: number;
+  rawValue?: number;
 }
 
 const tagColors: Record<string, string> = {
@@ -32,7 +33,49 @@ function getScoreColor(score: number): string {
   return 'from-energy-red to-energy-yellow';
 }
 
-export function MetricCard({ title, titleVi, score, tag, value, index }: MetricCardProps) {
+// Performance labels based on metric type and value
+function getPerformanceLabel(tag: string, score: number, rawValue?: number): { label: string; color: string } {
+  if (tag === 'ENERGY') {
+    if (score >= 80) return { label: '🔊 Loud & Clear', color: 'text-energy-green' };
+    if (score >= 50) return { label: '🔉 Moderate', color: 'text-energy-yellow' };
+    return { label: '🔈 Too Quiet', color: 'text-energy-red' };
+  }
+  
+  if (tag === 'FLUENCY') {
+    if (rawValue !== undefined) {
+      if (rawValue >= 140 && rawValue <= 180) return { label: '✨ Perfect Pace', color: 'text-energy-green' };
+      if (rawValue < 140) return { label: '🐢 Too Slow', color: 'text-energy-yellow' };
+      return { label: '🐇 Too Fast', color: 'text-energy-yellow' };
+    }
+    if (score >= 80) return { label: '✨ Perfect Pace', color: 'text-energy-green' };
+    return { label: '⚡ Adjust Speed', color: 'text-energy-yellow' };
+  }
+  
+  if (tag === 'DYNAMICS') {
+    if (score >= 70) return { label: '🚀 Dynamic', color: 'text-energy-green' };
+    if (score >= 40) return { label: '📊 Moderate', color: 'text-energy-yellow' };
+    return { label: '📉 Flat', color: 'text-energy-red' };
+  }
+  
+  if (tag === 'READINESS') {
+    if (score >= 80) return { label: '⚡ Quick Start', color: 'text-energy-green' };
+    if (score >= 50) return { label: '⏱️ Moderate', color: 'text-energy-yellow' };
+    return { label: '🐌 Slow Start', color: 'text-energy-red' };
+  }
+  
+  if (tag === 'FLUIDITY') {
+    if (score >= 80) return { label: '🌊 Smooth Flow', color: 'text-energy-green' };
+    if (score >= 50) return { label: '💧 Decent', color: 'text-energy-yellow' };
+    if (score === 0) return { label: '⏸️ Long Pause', color: 'text-energy-red' };
+    return { label: '💦 Choppy', color: 'text-energy-red' };
+  }
+  
+  return { label: '', color: '' };
+}
+
+export function MetricCard({ title, titleVi, score, tag, value, index, rawValue }: MetricCardProps) {
+  const performanceLabel = getPerformanceLabel(tag, score, rawValue);
+  
   return (
     <motion.div
       className="glass-card p-4"
@@ -56,6 +99,15 @@ export function MetricCard({ title, titleVi, score, tag, value, index }: MetricC
         </div>
       </div>
       
+      {/* Performance Tag */}
+      {performanceLabel.label && (
+        <div className="mb-2">
+          <span className={`text-sm font-medium ${performanceLabel.color}`}>
+            {performanceLabel.label}
+          </span>
+        </div>
+      )}
+      
       {value && (
         <p className="text-xs text-muted-foreground mb-2">{value}</p>
       )}
@@ -69,7 +121,7 @@ export function MetricCard({ title, titleVi, score, tag, value, index }: MetricC
         />
       </div>
       
-      <div className="mt-2 flex justify-end">
+      <div className="mt-2 flex justify-between items-center">
         <span className={`text-xs px-2 py-1 rounded-full border ${tagColors[tag]}`}>
           {tag}
         </span>

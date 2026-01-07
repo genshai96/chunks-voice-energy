@@ -18,6 +18,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.volume.score,
       tag: results.volume.tag,
       value: `Average: ${results.volume.averageDb.toFixed(1)} dB`,
+      rawValue: results.volume.averageDb,
     },
     {
       title: 'Speech Rate',
@@ -25,6 +26,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.speechRate.score,
       tag: results.speechRate.tag,
       value: `${results.speechRate.wordsPerMinute} WPM`,
+      rawValue: results.speechRate.wordsPerMinute,
     },
     {
       title: 'Acceleration',
@@ -32,6 +34,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.acceleration.score,
       tag: results.acceleration.tag,
       value: `${results.acceleration.accelerationEvents} acceleration events`,
+      rawValue: results.acceleration.accelerationEvents,
     },
     {
       title: 'Response Time',
@@ -39,6 +42,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.responseTime.score,
       tag: results.responseTime.tag,
       value: `${results.responseTime.responseTimeMs}ms to first speech`,
+      rawValue: results.responseTime.responseTimeMs,
     },
     {
       title: 'Pause Management',
@@ -46,6 +50,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.pauseManagement.score,
       tag: results.pauseManagement.tag,
       value: `${results.pauseManagement.pauseCount} pauses (avg ${results.pauseManagement.avgPauseDuration}s)`,
+      rawValue: results.pauseManagement.pauseCount,
     },
   ];
 
