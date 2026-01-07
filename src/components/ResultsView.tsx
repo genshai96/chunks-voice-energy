@@ -33,8 +33,10 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       titleVi: 'Tăng tốc & âm lượng',
       score: results.acceleration.score,
       tag: results.acceleration.tag,
-      value: `${results.acceleration.accelerationEvents} acceleration events`,
-      rawValue: results.acceleration.accelerationEvents,
+      value: results.acceleration.isAccelerating 
+        ? `↑ Vol: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB, Rate: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`
+        : `Vol: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB, Rate: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`,
+      rawValue: results.acceleration.isAccelerating ? 1 : 0,
     },
     {
       title: 'Response Time',
@@ -49,7 +51,9 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       titleVi: 'Quản lý ngừng nghỉ',
       score: results.pauseManagement.score,
       tag: results.pauseManagement.tag,
-      value: `${results.pauseManagement.pauseCount} pauses (avg ${results.pauseManagement.avgPauseDuration}s)`,
+      value: results.pauseManagement.pauseCount === 0 
+        ? 'No pauses - Perfect!' 
+        : `${results.pauseManagement.pauseCount} pauses (max ${results.pauseManagement.maxPauseDuration}s)`,
       rawValue: results.pauseManagement.pauseCount,
     },
   ];
