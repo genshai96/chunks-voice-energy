@@ -470,7 +470,8 @@ export function calculatePauseManagement(
   duration: number
 ): PauseManagementResult {
   const config = getMetricConfig('pauseManagement');
-  const CRITICAL_PAUSE_THRESHOLD = config?.thresholds.max ?? 2.71; // seconds
+  const MAX_PAUSE_DURATION = config?.thresholds.max ?? 2.71; // seconds - any pause > this = 0 score
+  const MAX_PAUSE_COUNT = config?.thresholds.min ?? 3; // max allowed pauses - more = 0 score
   
   const pauses = detectPauses(audioBuffer, sampleRate);
   
@@ -488,8 +489,19 @@ export function calculatePauseManagement(
   const maxPauseDuration = Math.max(...pauses.map(p => p.duration));
   const avgDuration = pauses.reduce((sum, p) => sum + p.duration, 0) / pauses.length;
   
-  // Any pause > critical threshold = 0 score
-  if (maxPauseDuration > CRITICAL_PAUSE_THRESHOLD) {
+  // CRITICAL FAILURE: Any single pause > max duration = 0 score
+  if (maxPauseDuration > MAX_PAUSE_DURATION) {
+    return {
+      pauseCount: pauses.length,
+      avgPauseDuration: Math.round(avgDuration * 100) / 100,
+      maxPauseDuration: Math.round(maxPauseDuration * 100) / 100,
+      score: 0,
+      tag: 'FLUIDITY'
+    };
+  }
+  
+  // CRITICAL FAILURE: Too many pauses = 0 score
+  if (pauses.length > MAX_PAUSE_COUNT) {
     return {
       pauseCount: pauses.length,
       avgPauseDuration: Math.round(avgDuration * 100) / 100,
@@ -504,15 +516,16 @@ export function calculatePauseManagement(
   let score = 100;
   
   // Penalty for each pause (fewer pauses = better)
-  score -= pauses.length * 10;
-  
-  // Penalty for pauses approaching critical threshold
-  const warningPauses = pauses.filter(p => p.duration > CRITICAL_PAUSE_THRESHOLD * 0.5);
-  score -= warningPauses.length * 15;
+  const pauseCountPenalty = (pauses.length / MAX_PAUSE_COUNT) * 30;
+  score -= pauseCountPenalty;
   
   // Penalty based on max pause duration relative to threshold
-  const maxPauseRatio = maxPauseDuration / CRITICAL_PAUSE_THRESHOLD;
-  score -= Math.round(maxPauseRatio * 20);
+  const maxPauseRatio = maxPauseDuration / MAX_PAUSE_DURATION;
+  score -= Math.round(maxPauseRatio * 40);
+  
+  // Penalty for pauses approaching critical threshold (>50% of max)
+  const warningPauses = pauses.filter(p => p.duration > MAX_PAUSE_DURATION * 0.5);
+  score -= warningPauses.length * 10;
   
   return {
     pauseCount: pauses.length,
