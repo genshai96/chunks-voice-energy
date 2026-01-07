@@ -18,6 +18,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.volume.score,
       value: `Average: ${results.volume.averageDb.toFixed(1)} dB`,
       rawValue: results.volume.averageDb,
+      tag: "POWER",
     },
     {
       title: "Speech Tempo",
@@ -25,6 +26,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.speechRate.score,
       value: `${results.speechRate.wordsPerMinute} WPM`,
       rawValue: results.speechRate.wordsPerMinute,
+      tag: "TEMPO",
     },
     {
       title: "Energy Boost",
@@ -34,6 +36,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
         ? `↑ Power: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB | Tempo: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`
         : `Power: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB | Tempo: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`,
       rawValue: results.acceleration.isAccelerating ? 1 : 0,
+      tag: "BOOST",
     },
     {
       title: "Initial Spark",
@@ -41,6 +44,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       score: results.responseTime.score,
       value: `${results.responseTime.responseTimeMs}ms to first sound`,
       rawValue: results.responseTime.responseTimeMs,
+      tag: "SPARK",
     },
     {
       title: "Energy Flow",
@@ -51,6 +55,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
           ? "Continuous flow - Perfect!"
           : `${results.pauseManagement.pauseCount} breaks (max ${results.pauseManagement.maxPauseDuration}s)`,
       rawValue: results.pauseManagement.pauseCount,
+      tag: "FLOW",
     },
   ];
 
