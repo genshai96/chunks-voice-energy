@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MetricConfigCard } from '@/components/admin/MetricConfigCard';
 import { ScoreRangeChart } from '@/components/admin/ScoreRangeChart';
+import { MetricMethodInfo } from '@/components/admin/MetricMethodInfo';
 import { toast } from '@/hooks/use-toast';
 
 export type SpeechRateMethod = 'energy-peaks' | 'deepgram-stt';
@@ -392,6 +393,9 @@ export default function AdminSettings() {
                     )}
                   </div>
                 </div>
+
+                {/* Measurement Method Info */}
+                <MetricMethodInfo metricId={currentMetric.id} />
 
                 {/* Tags Legend */}
                 <div className="glass-card p-6">
