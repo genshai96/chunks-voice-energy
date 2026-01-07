@@ -272,46 +272,48 @@ export function calculatePauseManagement(
   duration: number
 ): PauseManagementResult {
   const pauses = detectPauses(audioBuffer, sampleRate);
+  const CRITICAL_PAUSE_THRESHOLD = 2.71; // seconds - any pause > this = score 0
   
+  // No pauses = perfect score (highest energy, continuous speech)
   if (pauses.length === 0) {
     return {
       pauseCount: 0,
       avgPauseDuration: 0,
-      score: 85, // Good continuous speech
+      score: 100, // Perfect - no interruptions
       tag: 'FLUIDITY'
     };
   }
   
-  const excessivePauses = pauses.filter(p => p.duration >= 2.0);
-  const longPauses = pauses.filter(p => p.duration >= 1.0 && p.duration < 2.0);
-  
-  if (excessivePauses.length > 0) {
+  // Check for any pause > 2.71s = immediate 0
+  const criticalPause = pauses.find(p => p.duration > CRITICAL_PAUSE_THRESHOLD);
+  if (criticalPause) {
+    const avgDuration = pauses.reduce((sum, p) => sum + p.duration, 0) / pauses.length;
     return {
       pauseCount: pauses.length,
-      avgPauseDuration: pauses.reduce((sum, p) => sum + p.duration, 0) / pauses.length,
-      score: 0,
+      avgPauseDuration: Math.round(avgDuration * 100) / 100,
+      score: 0, // Critical pause detected
       tag: 'FLUIDITY'
     };
   }
   
+  const avgDuration = pauses.reduce((sum, p) => sum + p.duration, 0) / pauses.length;
+  
+  // Score calculation: fewer pauses & shorter durations = higher score
+  // Start from 100, deduct based on pause characteristics
   let score = 100;
   
-  // Penalty for long pauses
-  const MAX_ACCEPTABLE_LONG_PAUSES = 2;
-  const longPausePenalty = Math.max(0, longPauses.length - MAX_ACCEPTABLE_LONG_PAUSES) * 20;
-  score -= longPausePenalty;
+  // Penalty for number of pauses (each pause costs points)
+  const pauseCountPenalty = pauses.length * 8;
+  score -= pauseCountPenalty;
   
-  // Penalty for pause frequency
-  const pauseFrequency = (pauses.length / duration) * 60;
-  const IDEAL_PAUSE_FREQUENCY = 4;
-  const frequencyDeviation = Math.abs(pauseFrequency - IDEAL_PAUSE_FREQUENCY);
-  const frequencyPenalty = (frequencyDeviation / IDEAL_PAUSE_FREQUENCY) * 30;
-  score -= frequencyPenalty;
+  // Penalty for pauses approaching critical threshold
+  // Pauses between 1.5s and 2.71s are concerning
+  const warningPauses = pauses.filter(p => p.duration > 1.5);
+  score -= warningPauses.length * 15;
   
-  // Penalty for long average duration
-  const avgDuration = pauses.reduce((sum, p) => sum + p.duration, 0) / pauses.length;
-  if (avgDuration > 0.8) {
-    score -= (avgDuration - 0.8) * 25;
+  // Penalty for average duration
+  if (avgDuration > 0.5) {
+    score -= (avgDuration - 0.5) * 20;
   }
   
   return {
