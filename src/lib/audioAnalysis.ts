@@ -192,7 +192,6 @@ export function calculateSpeechRate(
   const config = getMetricConfig('speechRate');
   const MIN_WPM = config?.thresholds.min ?? 80;
   const IDEAL_WPM = config?.thresholds.ideal ?? 160;
-  const MAX_WPM = config?.thresholds.max ?? 220;
   
   // Calculate volume if not provided (for volume-compensated detection)
   const actualVolumeDb = volumeDb ?? calculateSegmentDb(audioBuffer);
@@ -201,27 +200,17 @@ export function calculateSpeechRate(
   const syllablesPerSecond = peaks.length / Math.max(duration, 0.1);
   const wordsPerMinute = syllablesPerSecond * 60 * 0.6;
   
-  // Calculate ideal range around IDEAL_WPM
-  const IDEAL_MIN = IDEAL_WPM - 20;
-  const IDEAL_MAX = IDEAL_WPM + 20;
-  
+  // Scoring: >= IDEAL = 100 points (faster is always better, no max penalty)
   let score: number;
-  if (wordsPerMinute >= IDEAL_MIN && wordsPerMinute <= IDEAL_MAX) {
-    // Perfect range: 100 points
+  if (wordsPerMinute >= IDEAL_WPM) {
+    // At or above target = perfect score
     score = 100;
   } else if (wordsPerMinute < MIN_WPM) {
-    // Too slow: scale from 0 to partial score
+    // Below minimum: scale from 0 to 50
     score = Math.max(0, (wordsPerMinute / MIN_WPM) * 50);
-  } else if (wordsPerMinute > MAX_WPM) {
-    // Too fast: scale down based on how far over MAX
-    const overMax = wordsPerMinute - MAX_WPM;
-    score = Math.max(0, 50 - overMax);
-  } else if (wordsPerMinute < IDEAL_MIN) {
-    // Between MIN and IDEAL_MIN: scale 50-100
-    score = 50 + ((wordsPerMinute - MIN_WPM) / (IDEAL_MIN - MIN_WPM)) * 50;
   } else {
-    // Between IDEAL_MAX and MAX: scale 100-50
-    score = 100 - ((wordsPerMinute - IDEAL_MAX) / (MAX_WPM - IDEAL_MAX)) * 50;
+    // Between MIN and IDEAL: scale 50 to 100
+    score = 50 + ((wordsPerMinute - MIN_WPM) / (IDEAL_WPM - MIN_WPM)) * 50;
   }
   
   return {
@@ -241,7 +230,6 @@ export async function calculateSpeechRateWithSTT(
   const config = getMetricConfig('speechRate');
   const MIN_WPM = config?.thresholds.min ?? 80;
   const IDEAL_WPM = config?.thresholds.ideal ?? 160;
-  const MAX_WPM = config?.thresholds.max ?? 220;
   
   try {
     const { data, error } = await supabase.functions.invoke('deepgram-transcribe', {
@@ -253,27 +241,19 @@ export async function calculateSpeechRateWithSTT(
     const wordsPerMinute = data.wordsPerMinute || 0;
     const transcript = data.transcript || '';
     
-    // Calculate ideal range around IDEAL_WPM
-    const IDEAL_MIN = IDEAL_WPM - 20;
-    const IDEAL_MAX = IDEAL_WPM + 20;
-    
+    // Scoring: >= IDEAL = 100 points (faster is always better)
     let score: number;
-    if (wordsPerMinute >= IDEAL_MIN && wordsPerMinute <= IDEAL_MAX) {
+    if (wordsPerMinute >= IDEAL_WPM) {
       score = 100;
     } else if (wordsPerMinute < MIN_WPM) {
       score = Math.max(0, (wordsPerMinute / MIN_WPM) * 50);
-    } else if (wordsPerMinute > MAX_WPM) {
-      const overMax = wordsPerMinute - MAX_WPM;
-      score = Math.max(0, 50 - overMax);
-    } else if (wordsPerMinute < IDEAL_MIN) {
-      score = 50 + ((wordsPerMinute - MIN_WPM) / (IDEAL_MIN - MIN_WPM)) * 50;
     } else {
-      score = 100 - ((wordsPerMinute - IDEAL_MAX) / (MAX_WPM - IDEAL_MAX)) * 50;
+      score = 50 + ((wordsPerMinute - MIN_WPM) / (IDEAL_WPM - MIN_WPM)) * 50;
     }
     
     return {
       wordsPerMinute,
-      syllablesPerSecond: wordsPerMinute / 60 / 0.6, // Reverse calculation
+      syllablesPerSecond: wordsPerMinute / 60 / 0.6,
       score: Math.round(Math.max(0, Math.min(100, score))),
       tag: 'FLUENCY',
       method: 'deepgram-stt',
