@@ -91,9 +91,9 @@ const defaultMetrics: MetricConfig[] = [
     weight: 15,
     tag: 'FLUIDITY',
     tagColor: 'tag-fluidity',
-    thresholds: { min: 0, ideal: 0, max: 2.71 },
-    labels: { low: 'Perfect (No Pause)', ideal: 'Fluent', high: 'Critical (>2.71s)' },
-    unit: 's max'
+    thresholds: { min: 3, ideal: 0, max: 2.71 }, // min = max pause count allowed
+    labels: { low: 'Max Pauses', ideal: 'Perfect (No Pause)', high: 'Max Duration' },
+    unit: ''
   },
 ];
 
@@ -269,48 +269,101 @@ export default function AdminSettings() {
                   </h4>
                   
                   <div className="space-y-8">
-                    {/* Min Threshold */}
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="text-sm font-medium text-foreground">
-                          Minimum ({currentMetric.labels.low})
-                        </label>
-                        <span className="text-sm text-muted-foreground">
-                          {currentMetric.thresholds.min} {currentMetric.unit}
-                        </span>
-                      </div>
-                      <Slider
-                        value={[currentMetric.thresholds.min]}
-                        onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'min', v)}
-                        min={currentMetric.id === 'volume' ? -60 : 0}
-                        max={currentMetric.id === 'volume' ? 0 : 300}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
+                    {/* Pause Management - special config */}
+                    {currentMetric.id === 'pauseManagement' ? (
+                      <>
+                        {/* Max Pause Count */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-medium text-foreground">
+                              Max Pause Count (exceeding = 0 score)
+                            </label>
+                            <span className="text-sm text-energy-red font-bold">
+                              {currentMetric.thresholds.min} pauses
+                            </span>
+                          </div>
+                          <Slider
+                            value={[currentMetric.thresholds.min]}
+                            onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'min', v)}
+                            min={1}
+                            max={10}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
 
-                    {/* Ideal Threshold */}
-                    <div>
-                      <div className="flex justify-between items-center mb-2">
-                        <label className="text-sm font-medium text-foreground">
-                          Ideal Target ({currentMetric.labels.ideal})
-                        </label>
-                        <span className="text-sm text-energy-green">
-                          {currentMetric.thresholds.ideal} {currentMetric.unit}
-                        </span>
-                      </div>
-                      <Slider
-                        value={[currentMetric.thresholds.ideal]}
-                        onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'ideal', v)}
-                        min={currentMetric.id === 'volume' ? -60 : 0}
-                        max={currentMetric.id === 'volume' ? 0 : 300}
-                        step={1}
-                        className="w-full"
-                      />
-                    </div>
+                        {/* Max Pause Duration */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-medium text-foreground">
+                              Max Pause Duration (exceeding = 0 score)
+                            </label>
+                            <span className="text-sm text-energy-red font-bold">
+                              {currentMetric.thresholds.max}s
+                            </span>
+                          </div>
+                          <Slider
+                            value={[currentMetric.thresholds.max * 100]}
+                            onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'max', v / 100)}
+                            min={50}
+                            max={500}
+                            step={10}
+                            className="w-full"
+                          />
+                        </div>
 
-                    {/* Max Threshold - Hidden for speechRate since >= target = 100% */}
-                    {currentMetric.id !== 'speechRate' && (
+                        <div className="p-4 rounded-lg bg-energy-green/10 border border-energy-green/30">
+                          <p className="text-sm text-energy-green">
+                            ✓ No pauses = 100% score (perfect fluency)
+                          </p>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Min Threshold */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-medium text-foreground">
+                              Minimum ({currentMetric.labels.low})
+                            </label>
+                            <span className="text-sm text-muted-foreground">
+                              {currentMetric.thresholds.min} {currentMetric.unit}
+                            </span>
+                          </div>
+                          <Slider
+                            value={[currentMetric.thresholds.min]}
+                            onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'min', v)}
+                            min={currentMetric.id === 'volume' ? -60 : 0}
+                            max={currentMetric.id === 'volume' ? 0 : 300}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
+
+                        {/* Ideal Threshold */}
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="text-sm font-medium text-foreground">
+                              Ideal Target ({currentMetric.labels.ideal})
+                            </label>
+                            <span className="text-sm text-energy-green">
+                              {currentMetric.thresholds.ideal} {currentMetric.unit}
+                            </span>
+                          </div>
+                          <Slider
+                            value={[currentMetric.thresholds.ideal]}
+                            onValueChange={([v]) => handleThresholdChange(currentMetric.id, 'ideal', v)}
+                            min={currentMetric.id === 'volume' ? -60 : 0}
+                            max={currentMetric.id === 'volume' ? 0 : 300}
+                            step={1}
+                            className="w-full"
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    {/* Max Threshold - Hidden for speechRate and pauseManagement (handled above) */}
+                    {currentMetric.id !== 'speechRate' && currentMetric.id !== 'pauseManagement' && (
                       <div>
                         <div className="flex justify-between items-center mb-2">
                           <label className="text-sm font-medium text-foreground">
