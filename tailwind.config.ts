@@ -13,6 +13,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Space Grotesk", "system-ui", "sans-serif"],
+        display: ["Space Grotesk", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -57,6 +61,21 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        energy: {
+          cyan: "hsl(var(--energy-cyan))",
+          "cyan-glow": "hsl(var(--energy-cyan-glow))",
+          purple: "hsl(var(--energy-purple))",
+          green: "hsl(var(--energy-green))",
+          yellow: "hsl(var(--energy-yellow))",
+          red: "hsl(var(--energy-red))",
+        },
+        tag: {
+          energy: "hsl(var(--tag-energy))",
+          fluency: "hsl(var(--tag-fluency))",
+          dynamics: "hsl(var(--tag-dynamics))",
+          readiness: "hsl(var(--tag-readiness))",
+          fluidity: "hsl(var(--tag-fluidity))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -65,25 +84,27 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "1" },
+          "50%": { opacity: "0.5" },
+        },
+        "score-fill": {
+          "0%": { width: "0%" },
+          "100%": { width: "var(--score-width)" },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
+        "score-fill": "score-fill 1s ease-out forwards",
       },
     },
   },
