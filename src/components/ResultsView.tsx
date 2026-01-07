@@ -13,47 +13,47 @@ interface ResultsViewProps {
 export function ResultsView({ results, onRetry }: ResultsViewProps) {
   const metrics = [
     {
-      title: 'Volume Level',
-      titleVi: 'Độ lớn âm thanh',
+      title: 'Voice Power',
+      titleVi: 'Công suất giọng nói',
       score: results.volume.score,
-      tag: results.volume.tag,
+      tag: 'POWER',
       value: `Average: ${results.volume.averageDb.toFixed(1)} dB`,
       rawValue: results.volume.averageDb,
     },
     {
-      title: 'Speech Rate',
-      titleVi: 'Tốc độ nói',
+      title: 'Speech Tempo',
+      titleVi: 'Nhịp độ nói',
       score: results.speechRate.score,
-      tag: results.speechRate.tag,
+      tag: 'TEMPO',
       value: `${results.speechRate.wordsPerMinute} WPM`,
       rawValue: results.speechRate.wordsPerMinute,
     },
     {
-      title: 'Acceleration',
-      titleVi: 'Tăng tốc & âm lượng',
+      title: 'Energy Boost',
+      titleVi: 'Tăng cường năng lượng',
       score: results.acceleration.score,
-      tag: results.acceleration.tag,
+      tag: 'BOOST',
       value: results.acceleration.isAccelerating 
-        ? `↑ Vol: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB, Rate: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`
-        : `Vol: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB, Rate: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`,
+        ? `↑ Power: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB | Tempo: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`
+        : `Power: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB | Tempo: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`,
       rawValue: results.acceleration.isAccelerating ? 1 : 0,
     },
     {
-      title: 'Response Time',
-      titleVi: 'Tốc độ phản hồi',
+      title: 'Initial Spark',
+      titleVi: 'Khởi động năng lượng',
       score: results.responseTime.score,
-      tag: results.responseTime.tag,
-      value: `${results.responseTime.responseTimeMs}ms to first speech`,
+      tag: 'SPARK',
+      value: `${results.responseTime.responseTimeMs}ms to first sound`,
       rawValue: results.responseTime.responseTimeMs,
     },
     {
-      title: 'Pause Management',
-      titleVi: 'Quản lý ngừng nghỉ',
+      title: 'Energy Flow',
+      titleVi: 'Dòng năng lượng',
       score: results.pauseManagement.score,
-      tag: results.pauseManagement.tag,
+      tag: 'FLOW',
       value: results.pauseManagement.pauseCount === 0 
-        ? 'No pauses - Perfect!' 
-        : `${results.pauseManagement.pauseCount} pauses (max ${results.pauseManagement.maxPauseDuration}s)`,
+        ? 'Continuous flow - Perfect!' 
+        : `${results.pauseManagement.pauseCount} breaks (max ${results.pauseManagement.maxPauseDuration}s)`,
       rawValue: results.pauseManagement.pauseCount,
     },
   ];
@@ -79,7 +79,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       >
         <h3 className="text-lg font-display font-semibold text-foreground mb-4 flex items-center gap-2">
           <span className="w-1 h-6 rounded-full gradient-primary" />
-          Metric Breakdown
+          Voice Energy Breakdown
         </h3>
         
         <div className="space-y-3">

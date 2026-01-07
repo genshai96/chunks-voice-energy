@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Volume2, Zap, TrendingUp, Clock, Pause } from 'lucide-react';
+import { Volume2, Mic2, Flame, Timer, Waves } from 'lucide-react';
 
 interface MetricCardProps {
   title: string;
@@ -12,19 +12,19 @@ interface MetricCardProps {
 }
 
 const tagColors: Record<string, string> = {
-  ENERGY: 'bg-tag-energy/20 text-tag-energy border-tag-energy/30',
-  FLUENCY: 'bg-tag-fluency/20 text-tag-fluency border-tag-fluency/30',
-  DYNAMICS: 'bg-tag-dynamics/20 text-tag-dynamics border-tag-dynamics/30',
-  READINESS: 'bg-tag-readiness/20 text-tag-readiness border-tag-readiness/30',
-  FLUIDITY: 'bg-tag-fluidity/20 text-tag-fluidity border-tag-fluidity/30',
+  POWER: 'bg-tag-energy/20 text-tag-energy border-tag-energy/30',
+  TEMPO: 'bg-tag-fluency/20 text-tag-fluency border-tag-fluency/30',
+  BOOST: 'bg-tag-dynamics/20 text-tag-dynamics border-tag-dynamics/30',
+  SPARK: 'bg-tag-readiness/20 text-tag-readiness border-tag-readiness/30',
+  FLOW: 'bg-tag-fluidity/20 text-tag-fluidity border-tag-fluidity/30',
 };
 
 const tagIcons: Record<string, React.ReactNode> = {
-  ENERGY: <Volume2 className="w-5 h-5" />,
-  FLUENCY: <Zap className="w-5 h-5" />,
-  DYNAMICS: <TrendingUp className="w-5 h-5" />,
-  READINESS: <Clock className="w-5 h-5" />,
-  FLUIDITY: <Pause className="w-5 h-5" />,
+  POWER: <Volume2 className="w-5 h-5" />,
+  TEMPO: <Mic2 className="w-5 h-5" />,
+  BOOST: <Flame className="w-5 h-5" />,
+  SPARK: <Timer className="w-5 h-5" />,
+  FLOW: <Waves className="w-5 h-5" />,
 };
 
 function getScoreColor(score: number): string {
@@ -35,39 +35,39 @@ function getScoreColor(score: number): string {
 
 // Performance labels based on metric type and value
 function getPerformanceLabel(tag: string, score: number, rawValue?: number): { label: string; color: string } {
-  if (tag === 'ENERGY') {
-    if (score >= 80) return { label: '🔊 Loud & Clear', color: 'text-energy-green' };
-    if (score >= 50) return { label: '🔉 Moderate', color: 'text-energy-yellow' };
-    return { label: '🔈 Too Quiet', color: 'text-energy-red' };
+  if (tag === 'POWER') {
+    if (score >= 80) return { label: '⚡ High Power', color: 'text-energy-green' };
+    if (score >= 50) return { label: '🔋 Medium Power', color: 'text-energy-yellow' };
+    return { label: '🪫 Low Power', color: 'text-energy-red' };
   }
   
-  if (tag === 'FLUENCY') {
+  if (tag === 'TEMPO') {
     if (rawValue !== undefined) {
-      if (rawValue >= 140 && rawValue <= 180) return { label: '✨ Perfect Pace', color: 'text-energy-green' };
-      if (rawValue < 140) return { label: '🐢 Too Slow', color: 'text-energy-yellow' };
-      return { label: '🐇 Too Fast', color: 'text-energy-yellow' };
+      if (rawValue >= 140 && rawValue <= 180) return { label: '🎯 Optimal Tempo', color: 'text-energy-green' };
+      if (rawValue < 140) return { label: '🐢 Slow Tempo', color: 'text-energy-yellow' };
+      return { label: '⚡ Fast Tempo', color: 'text-energy-yellow' };
     }
-    if (score >= 80) return { label: '✨ Perfect Pace', color: 'text-energy-green' };
-    return { label: '⚡ Adjust Speed', color: 'text-energy-yellow' };
+    if (score >= 80) return { label: '🎯 Optimal Tempo', color: 'text-energy-green' };
+    return { label: '🎚️ Adjust Tempo', color: 'text-energy-yellow' };
   }
   
-  if (tag === 'DYNAMICS') {
-    if (score >= 70) return { label: '🚀 Dynamic', color: 'text-energy-green' };
-    if (score >= 40) return { label: '📊 Moderate', color: 'text-energy-yellow' };
-    return { label: '📉 Flat', color: 'text-energy-red' };
+  if (tag === 'BOOST') {
+    if (score >= 70) return { label: '🚀 Energy Rising', color: 'text-energy-green' };
+    if (score >= 40) return { label: '📊 Steady', color: 'text-energy-yellow' };
+    return { label: '📉 Flat Energy', color: 'text-energy-red' };
   }
   
-  if (tag === 'READINESS') {
-    if (score >= 80) return { label: '⚡ Quick Start', color: 'text-energy-green' };
-    if (score >= 50) return { label: '⏱️ Moderate', color: 'text-energy-yellow' };
-    return { label: '🐌 Slow Start', color: 'text-energy-red' };
+  if (tag === 'SPARK') {
+    if (score >= 80) return { label: '⚡ Instant Spark', color: 'text-energy-green' };
+    if (score >= 50) return { label: '💫 Warming Up', color: 'text-energy-yellow' };
+    return { label: '🔌 Slow Start', color: 'text-energy-red' };
   }
   
-  if (tag === 'FLUIDITY') {
+  if (tag === 'FLOW') {
     if (score >= 80) return { label: '🌊 Smooth Flow', color: 'text-energy-green' };
-    if (score >= 50) return { label: '💧 Decent', color: 'text-energy-yellow' };
-    if (score === 0) return { label: '⏸️ Long Pause', color: 'text-energy-red' };
-    return { label: '💦 Choppy', color: 'text-energy-red' };
+    if (score >= 50) return { label: '💧 Decent Flow', color: 'text-energy-yellow' };
+    if (score === 0) return { label: '⏸️ Flow Break', color: 'text-energy-red' };
+    return { label: '💦 Choppy Flow', color: 'text-energy-red' };
   }
   
   return { label: '', color: '' };
