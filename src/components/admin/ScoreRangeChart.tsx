@@ -14,11 +14,26 @@ export function ScoreRangeChart({ metric }: ScoreRangeChartProps) {
     // For metrics where lower is better (like response time)
     const isInverted = metric.id === 'responseTime';
     
-    const range = isInverted ? min : max;
-    const start = isInverted ? 0 : min;
+    // For speechRate: no maximum, >= ideal = 100%
+    const isSpeechRate = metric.id === 'speechRate';
+    
+    // Determine the range for the chart
+    let rangeStart: number;
+    let rangeEnd: number;
+    
+    if (isInverted) {
+      rangeStart = 0;
+      rangeEnd = min;
+    } else if (isSpeechRate) {
+      rangeStart = 0;
+      rangeEnd = ideal * 1.5; // Show beyond ideal to demonstrate no penalty
+    } else {
+      rangeStart = min;
+      rangeEnd = max;
+    }
     
     for (let i = 0; i <= 100; i += 5) {
-      const value = start + (range - start) * (i / 100);
+      const value = rangeStart + (rangeEnd - rangeStart) * (i / 100);
       let score = 0;
       
       if (isInverted) {
@@ -30,28 +45,23 @@ export function ScoreRangeChart({ metric }: ScoreRangeChartProps) {
         } else {
           score = 100 - ((value - ideal) / (min - ideal)) * 100;
         }
+      } else if (isSpeechRate) {
+        // Speech rate: >= ideal = 100%, no maximum penalty
+        if (value >= ideal) {
+          score = 100;
+        } else if (value < min) {
+          score = Math.max(0, (value / min) * 50);
+        } else {
+          score = 50 + ((value - min) / (ideal - min)) * 50;
+        }
       } else {
         // For other metrics
-        if (metric.id === 'speechRate') {
-          const idealMin = 140;
-          const idealMax = 180;
-          if (value >= idealMin && value <= idealMax) {
-            score = 100;
-          } else if (value < min || value > max) {
-            score = 0;
-          } else if (value < idealMin) {
-            score = ((value - min) / (idealMin - min)) * 100;
-          } else {
-            score = ((max - value) / (max - idealMax)) * 100;
-          }
+        if (value < min) {
+          score = 0;
+        } else if (value >= ideal) {
+          score = 100;
         } else {
-          if (value < min) {
-            score = 0;
-          } else if (value >= ideal) {
-            score = 100;
-          } else {
-            score = ((value - min) / (ideal - min)) * 100;
-          }
+          score = ((value - min) / (ideal - min)) * 100;
         }
       }
       
