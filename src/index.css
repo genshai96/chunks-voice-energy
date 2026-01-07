@@ -67,6 +67,32 @@
     --sidebar-ring: 0 72% 51%;
   }
 
+  /* Light mode - clean white with red accents */
+  .light {
+    --background: 0 0% 98%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 0 72% 45%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 94%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 92%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 0 75% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 72% 45%;
+
+    --glass-bg: 0 0% 100% / 0.9;
+    --glass-border: 0 0% 85% / 0.6;
+  }
+
   .dark {
     --background: 0 0% 5%;
     --foreground: 0 0% 98%;
@@ -87,6 +113,9 @@
     --border: 0 0% 18%;
     --input: 0 0% 18%;
     --ring: 0 72% 51%;
+
+    --glass-bg: 0 0% 10% / 0.8;
+    --glass-border: 0 0% 20% / 0.5;
   }
 }
 
