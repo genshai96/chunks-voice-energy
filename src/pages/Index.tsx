@@ -6,7 +6,7 @@ import { RecordingTimer } from '@/components/RecordingTimer';
 import { AudioVisualizer } from '@/components/AudioVisualizer';
 import { ResultsView } from '@/components/ResultsView';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { analyzeAudio, AnalysisResult } from '@/lib/audioAnalysis';
+import { analyzeAudioAsync, AnalysisResult } from '@/lib/audioAnalysis';
 
 type AppState = 'idle' | 'recording' | 'processing' | 'results';
 
@@ -19,6 +19,7 @@ const Index = () => {
     isRecording,
     recordingTime,
     audioBuffer,
+    audioBase64,
     sampleRate,
     error,
     startRecording,
@@ -40,16 +41,20 @@ const Index = () => {
 
   // Process audio when recording stops
   useEffect(() => {
-    if (audioBuffer && appState === 'processing') {
-      const analysisResults = analyzeAudio(audioBuffer, sampleRate);
-      
-      // Small delay for UX
-      setTimeout(() => {
-        setResults(analysisResults);
-        setAppState('results');
-      }, 1000);
-    }
-  }, [audioBuffer, sampleRate, appState]);
+    const processAudio = async () => {
+      if (audioBuffer && appState === 'processing') {
+        const analysisResults = await analyzeAudioAsync(audioBuffer, sampleRate, audioBase64 || undefined);
+        
+        // Small delay for UX
+        setTimeout(() => {
+          setResults(analysisResults);
+          setAppState('results');
+        }, 500);
+      }
+    };
+    
+    processAudio();
+  }, [audioBuffer, audioBase64, sampleRate, appState]);
 
   const handleStartRecording = useCallback(async () => {
     setResults(null);

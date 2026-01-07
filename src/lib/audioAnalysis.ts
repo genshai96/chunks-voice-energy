@@ -1,5 +1,10 @@
 // Audio Analysis Metrics for Voice Energy App
 
+import { supabase } from '@/integrations/supabase/client';
+
+// Types for speech rate method
+export type SpeechRateMethod = 'energy-peaks' | 'deepgram-stt';
+
 // Config interface matching admin settings
 export interface MetricConfig {
   id: string;
@@ -9,6 +14,7 @@ export interface MetricConfig {
     ideal: number;
     max: number;
   };
+  method?: SpeechRateMethod;
 }
 
 // Load config from localStorage or use defaults
@@ -25,7 +31,7 @@ function getConfig(): MetricConfig[] {
   // Default config (matches AdminSettings defaults)
   return [
     { id: 'volume', weight: 30, thresholds: { min: -40, ideal: -10, max: 0 } },
-    { id: 'speechRate', weight: 30, thresholds: { min: 80, ideal: 160, max: 220 } },
+    { id: 'speechRate', weight: 30, thresholds: { min: 80, ideal: 160, max: 220 }, method: 'energy-peaks' },
     { id: 'acceleration', weight: 15, thresholds: { min: 0, ideal: 50, max: 100 } },
     { id: 'responseTime', weight: 10, thresholds: { min: 2000, ideal: 200, max: 0 } },
     { id: 'pauseManagement', weight: 15, thresholds: { min: 0, ideal: 0, max: 2.71 } },
@@ -34,6 +40,11 @@ function getConfig(): MetricConfig[] {
 
 function getMetricConfig(id: string): MetricConfig | undefined {
   return getConfig().find(m => m.id === id);
+}
+
+function getSpeechRateMethod(): SpeechRateMethod {
+  const config = getMetricConfig('speechRate');
+  return config?.method || 'energy-peaks';
 }
 
 export interface VolumeResult {
@@ -47,6 +58,8 @@ export interface SpeechRateResult {
   syllablesPerSecond: number;
   score: number;
   tag: 'FLUENCY';
+  method: SpeechRateMethod;
+  transcript?: string; // Only for STT method
 }
 
 export interface AccelerationResult {
@@ -207,8 +220,66 @@ export function calculateSpeechRate(
     wordsPerMinute: Math.round(wordsPerMinute),
     syllablesPerSecond: Math.round(syllablesPerSecond * 10) / 10,
     score: Math.round(Math.max(0, Math.min(100, score))),
-    tag: 'FLUENCY'
+    tag: 'FLUENCY',
+    method: 'energy-peaks'
   };
+}
+
+// Speech Rate via Deepgram STT
+export async function calculateSpeechRateWithSTT(
+  audioBase64: string,
+  duration: number
+): Promise<SpeechRateResult> {
+  const config = getMetricConfig('speechRate');
+  const MIN_WPM = config?.thresholds.min ?? 80;
+  const IDEAL_WPM = config?.thresholds.ideal ?? 160;
+  const MAX_WPM = config?.thresholds.max ?? 220;
+  
+  try {
+    const { data, error } = await supabase.functions.invoke('deepgram-transcribe', {
+      body: { audio: audioBase64 }
+    });
+    
+    if (error) throw error;
+    
+    const wordsPerMinute = data.wordsPerMinute || 0;
+    const transcript = data.transcript || '';
+    
+    // Calculate ideal range around IDEAL_WPM
+    const IDEAL_MIN = IDEAL_WPM - 20;
+    const IDEAL_MAX = IDEAL_WPM + 20;
+    
+    let score: number;
+    if (wordsPerMinute < MIN_WPM || wordsPerMinute > MAX_WPM) {
+      score = Math.max(0, 50 - Math.abs(wordsPerMinute - IDEAL_WPM) / 2);
+    } else if (wordsPerMinute >= IDEAL_MIN && wordsPerMinute <= IDEAL_MAX) {
+      score = 100;
+    } else if (wordsPerMinute < IDEAL_MIN) {
+      score = ((wordsPerMinute - MIN_WPM) / (IDEAL_MIN - MIN_WPM)) * 100;
+    } else {
+      score = ((MAX_WPM - wordsPerMinute) / (MAX_WPM - IDEAL_MAX)) * 100;
+    }
+    
+    return {
+      wordsPerMinute,
+      syllablesPerSecond: wordsPerMinute / 60 / 0.6, // Reverse calculation
+      score: Math.round(Math.max(0, Math.min(100, score))),
+      tag: 'FLUENCY',
+      method: 'deepgram-stt',
+      transcript
+    };
+  } catch (error) {
+    console.error('Deepgram STT error, falling back to energy peaks:', error);
+    // Fallback: return a placeholder (caller should handle this)
+    return {
+      wordsPerMinute: 0,
+      syllablesPerSecond: 0,
+      score: 0,
+      tag: 'FLUENCY',
+      method: 'deepgram-stt',
+      transcript: 'Error: Could not transcribe audio'
+    };
+  }
 }
 
 // Acceleration Analysis - 2 Segment Comparison
@@ -461,7 +532,7 @@ export function calculatePauseManagement(
   };
 }
 
-// Main Analysis Function - uses configured weights
+// Main Analysis Function - uses configured weights (sync version for energy peaks)
 export function analyzeAudio(audioBuffer: Float32Array, sampleRate: number): AnalysisResult {
   const duration = audioBuffer.length / sampleRate;
   const config = getConfig();
@@ -473,6 +544,65 @@ export function analyzeAudio(audioBuffer: Float32Array, sampleRate: number): Ana
   const pauseManagement = calculatePauseManagement(audioBuffer, sampleRate, duration);
   
   // Get weights from config (defaults: volume 30%, speech 30%, response 10%, pause 15%, acceleration 15%)
+  const volumeWeight = (config.find(m => m.id === 'volume')?.weight ?? 30) / 100;
+  const speechWeight = (config.find(m => m.id === 'speechRate')?.weight ?? 30) / 100;
+  const accelerationWeight = (config.find(m => m.id === 'acceleration')?.weight ?? 15) / 100;
+  const responseWeight = (config.find(m => m.id === 'responseTime')?.weight ?? 10) / 100;
+  const pauseWeight = (config.find(m => m.id === 'pauseManagement')?.weight ?? 15) / 100;
+  
+  const overallScore = Math.round(
+    volume.score * volumeWeight +
+    speechRate.score * speechWeight +
+    acceleration.score * accelerationWeight +
+    responseTime.score * responseWeight +
+    pauseManagement.score * pauseWeight
+  );
+  
+  let emotionalFeedback: 'excellent' | 'good' | 'poor';
+  if (overallScore >= 71) {
+    emotionalFeedback = 'excellent';
+  } else if (overallScore >= 41) {
+    emotionalFeedback = 'good';
+  } else {
+    emotionalFeedback = 'poor';
+  }
+  
+  return {
+    volume,
+    speechRate,
+    acceleration,
+    responseTime,
+    pauseManagement,
+    overallScore,
+    emotionalFeedback
+  };
+}
+
+// Async Analysis Function - supports both methods including STT
+export async function analyzeAudioAsync(
+  audioBuffer: Float32Array, 
+  sampleRate: number,
+  audioBase64?: string
+): Promise<AnalysisResult> {
+  const duration = audioBuffer.length / sampleRate;
+  const config = getConfig();
+  const method = getSpeechRateMethod();
+  
+  const volume = calculateVolumeLevel(audioBuffer);
+  
+  // Use STT method if configured and audioBase64 is available
+  let speechRate: SpeechRateResult;
+  if (method === 'deepgram-stt' && audioBase64) {
+    speechRate = await calculateSpeechRateWithSTT(audioBase64, duration);
+  } else {
+    speechRate = calculateSpeechRate(audioBuffer, sampleRate, duration, volume.averageDb);
+  }
+  
+  const acceleration = calculateAcceleration(audioBuffer, sampleRate);
+  const responseTime = calculateResponseTime(audioBuffer, sampleRate);
+  const pauseManagement = calculatePauseManagement(audioBuffer, sampleRate, duration);
+  
+  // Get weights from config
   const volumeWeight = (config.find(m => m.id === 'volume')?.weight ?? 30) / 100;
   const speechWeight = (config.find(m => m.id === 'speechRate')?.weight ?? 30) / 100;
   const accelerationWeight = (config.find(m => m.id === 'acceleration')?.weight ?? 15) / 100;

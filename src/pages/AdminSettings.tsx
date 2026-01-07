@@ -4,9 +4,12 @@ import { ArrowLeft, Save, Volume2, Zap, TrendingUp, Clock, Pause } from 'lucide-
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MetricConfigCard } from '@/components/admin/MetricConfigCard';
 import { ScoreRangeChart } from '@/components/admin/ScoreRangeChart';
 import { toast } from '@/hooks/use-toast';
+
+export type SpeechRateMethod = 'energy-peaks' | 'deepgram-stt';
 
 export interface MetricConfig {
   id: string;
@@ -27,6 +30,7 @@ export interface MetricConfig {
     high: string;
   };
   unit: string;
+  method?: SpeechRateMethod; // Only for speechRate metric
 }
 
 const defaultMetrics: MetricConfig[] = [
@@ -52,7 +56,8 @@ const defaultMetrics: MetricConfig[] = [
     tagColor: 'tag-fluency',
     thresholds: { min: 80, ideal: 160, max: 220 },
     labels: { low: 'Too Slow', ideal: 'Optimal', high: 'Too Fast' },
-    unit: 'WPM'
+    unit: 'WPM',
+    method: 'energy-peaks'
   },
   {
     id: 'acceleration',
@@ -107,6 +112,12 @@ export default function AdminSettings() {
   const handleThresholdChange = (id: string, key: 'min' | 'ideal' | 'max', value: number) => {
     setMetrics(prev => prev.map(m => 
       m.id === id ? { ...m, thresholds: { ...m.thresholds, [key]: value } } : m
+    ));
+  };
+
+  const handleMethodChange = (id: string, method: SpeechRateMethod) => {
+    setMetrics(prev => prev.map(m => 
+      m.id === id ? { ...m, method } : m
     ));
   };
 
@@ -211,8 +222,44 @@ export default function AdminSettings() {
                     </span>
                   </div>
 
-                  {/* Score Range Chart */}
+                {/* Score Range Chart */}
                   <ScoreRangeChart metric={currentMetric} />
+
+                  {/* Speech Rate Method Selector */}
+                  {currentMetric.id === 'speechRate' && (
+                    <div className="mt-6 pt-6 border-t border-border/50">
+                      <h4 className="text-sm font-medium text-foreground mb-3">
+                        Detection Method
+                      </h4>
+                      <Select
+                        value={currentMetric.method || 'energy-peaks'}
+                        onValueChange={(value: SpeechRateMethod) => handleMethodChange(currentMetric.id, value)}
+                      >
+                        <SelectTrigger className="w-full bg-background/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="energy-peaks">
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium">Energy Peaks</span>
+                              <span className="text-xs text-muted-foreground">Local analysis (no API)</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="deepgram-stt">
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium">Speech-to-Text (Deepgram)</span>
+                              <span className="text-xs text-muted-foreground">Accurate word count via API</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        {currentMetric.method === 'deepgram-stt' 
+                          ? '🎯 Uses Deepgram API for accurate word-by-word transcription'
+                          : '⚡ Fast local detection based on audio energy patterns'}
+                      </p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Threshold Configuration */}

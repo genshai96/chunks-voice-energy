@@ -6,6 +6,7 @@ interface AudioRecorderState {
   recordingTime: number;
   audioBlob: Blob | null;
   audioBuffer: Float32Array | null;
+  audioBase64: string | null;
   sampleRate: number;
   error: string | null;
 }
@@ -24,6 +25,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
     recordingTime: 0,
     audioBlob: null,
     audioBuffer: null,
+    audioBase64: null,
     sampleRate: 44100,
     error: null,
   });
@@ -86,17 +88,29 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
         
         const audioBlob = new Blob(chunksRef.current, { type: 'audio/webm' });
         
+        // Convert to base64 for API calls
+        const reader = new FileReader();
+        const base64Promise = new Promise<string>((resolve) => {
+          reader.onloadend = () => {
+            const base64 = (reader.result as string).split(',')[1];
+            resolve(base64);
+          };
+          reader.readAsDataURL(audioBlob);
+        });
+        
         // Convert to audio buffer for analysis
         const arrayBuffer = await audioBlob.arrayBuffer();
         const audioContext = new AudioContext();
         const decodedBuffer = await audioContext.decodeAudioData(arrayBuffer);
         const audioBuffer = decodedBuffer.getChannelData(0);
+        const audioBase64 = await base64Promise;
         
         setState(prev => ({
           ...prev,
           isRecording: false,
           audioBlob,
           audioBuffer,
+          audioBase64,
           sampleRate: decodedBuffer.sampleRate,
         }));
         
@@ -156,6 +170,7 @@ export function useAudioRecorder(): UseAudioRecorderReturn {
       recordingTime: 0,
       audioBlob: null,
       audioBuffer: null,
+      audioBase64: null,
       sampleRate: 44100,
       error: null,
     });
