@@ -7,9 +7,9 @@ interface ScoreDisplayProps {
 }
 
 const emojis = {
-  excellent: '😊',
-  good: '😐',
-  poor: '😢',
+  excellent: '🔥',
+  good: '⚡',
+  poor: '💤',
 };
 
 const feedbackText = {
