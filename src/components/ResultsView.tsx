@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RotateCcw, ChevronDown, ChevronUp } from "lucide-react";
+import { RotateCcw, ChevronDown, ChevronUp, Volume2, Zap, TrendingUp, Clock, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScoreDisplay } from "./ScoreDisplay";
 import { MetricCard } from "./MetricCard";
@@ -20,6 +20,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       titleVi: "Công suất giọng nói",
       score: results.volume.score,
       tag: "POWER",
+      icon: Volume2,
       value: `Average: ${results.volume.averageDb.toFixed(1)} dB`,
       rawValue: results.volume.averageDb,
     },
@@ -28,6 +29,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       titleVi: "Nhịp độ nói",
       score: results.speechRate.score,
       tag: "TEMPO",
+      icon: Zap,
       value: `${results.speechRate.wordsPerMinute} WPM`,
       rawValue: results.speechRate.wordsPerMinute,
     },
@@ -36,6 +38,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       titleVi: "Tăng cường năng lượng",
       score: results.acceleration.score,
       tag: "BOOST",
+      icon: TrendingUp,
       value: results.acceleration.isAccelerating
         ? `↑ Power: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB | Tempo: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`
         : `Power: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB | Tempo: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`,
@@ -46,6 +49,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       titleVi: "Khởi động năng lượng",
       score: results.responseTime.score,
       tag: "SPARK",
+      icon: Clock,
       value: `${results.responseTime.responseTimeMs}ms to first sound`,
       rawValue: results.responseTime.responseTimeMs,
     },
@@ -54,6 +58,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       titleVi: "Dòng năng lượng",
       score: results.pauseManagement.score,
       tag: "FLOW",
+      icon: Waves,
       value:
         results.pauseManagement.pauseCount === 0
           ? "Continuous flow - Perfect!"
@@ -77,24 +82,27 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
         {/* Quick Summary - 5 metric scores in compact view */}
         <div className="glass-card p-4 mb-4">
           <div className="grid grid-cols-5 gap-2">
-            {metrics.map((metric) => (
-              <div key={metric.tag} className="text-center">
-                <div
-                  className={`text-lg font-bold ${
-                    metric.score >= 70
-                      ? "text-energy-green"
-                      : metric.score >= 40
-                      ? "text-energy-yellow"
-                      : "text-energy-red"
-                  }`}
-                >
-                  {metric.score}
+            {metrics.map((metric) => {
+              const Icon = metric.icon;
+              const colorClass =
+                metric.score >= 70
+                  ? "text-energy-green"
+                  : metric.score >= 40
+                  ? "text-energy-yellow"
+                  : "text-energy-red";
+              
+              return (
+                <div key={metric.tag} className="text-center flex flex-col items-center">
+                  <Icon className={`w-5 h-5 mb-1 ${colorClass}`} />
+                  <div className={`text-lg font-bold ${colorClass}`}>
+                    {metric.score}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    {metric.tag}
+                  </div>
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wider">
-                  {metric.tag}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
