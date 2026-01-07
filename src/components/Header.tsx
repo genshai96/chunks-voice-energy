@@ -1,7 +1,8 @@
 import { motion } from "framer-motion";
-import { Zap, Settings } from "lucide-react";
+import { Settings } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import logo from "@/assets/logo.png";
 
 export function Header() {
   return (
@@ -19,23 +20,18 @@ export function Header() {
         <div className="text-center">
           <div className="flex items-center justify-center gap-3 mb-2">
             <motion.div
-              className="p-2 rounded-xl gradient-primary energy-glow"
+              className="overflow-hidden rounded-xl energy-glow"
               animate={{
                 boxShadow: [
-                  "0 0 20px hsl(190 100% 50% / 0.3)",
-                  "0 0 40px hsl(190 100% 50% / 0.5)",
-                  "0 0 20px hsl(190 100% 50% / 0.3)",
+                  "0 0 20px hsl(0 72% 51% / 0.3)",
+                  "0 0 40px hsl(0 72% 51% / 0.5)",
+                  "0 0 20px hsl(0 72% 51% / 0.3)",
                 ],
               }}
               transition={{ duration: 2, repeat: Infinity }}
             >
-              <Zap className="w-6 h-6 text-primary-foreground" />
+              <img src={logo} alt="CHUNKS" className="h-10 w-auto" />
             </motion.div>
-            <h1 className="text-3xl font-display font-bold">
-              <span className="bg-gradient-to-r from-primary via-energy-cyan-glow to-accent bg-clip-text text-transparent">
-                CHUNKS
-              </span>
-            </h1>
           </div>
           <p className="text-muted-foreground text-sm">Voice Energy Measurement</p>
         </div>
