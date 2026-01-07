@@ -1,5 +1,6 @@
-import { motion } from "framer-motion";
-import { RotateCcw } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { RotateCcw, ChevronDown, ChevronUp, Volume2, Zap, TrendingUp, Clock, Waves } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScoreDisplay } from "./ScoreDisplay";
 import { MetricCard } from "./MetricCard";
@@ -11,6 +12,8 @@ interface ResultsViewProps {
 }
 
 export function ResultsView({ results, onRetry }: ResultsViewProps) {
+  const [showDetails, setShowDetails] = useState(false);
+
   const metrics = [
     {
       title: "Voice Power",
@@ -19,6 +22,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       value: `Average: ${results.volume.averageDb.toFixed(1)} dB`,
       rawValue: results.volume.averageDb,
       tag: "POWER",
+      icon: Volume2,
     },
     {
       title: "Speech Tempo",
@@ -27,6 +31,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       value: `${results.speechRate.wordsPerMinute} WPM`,
       rawValue: results.speechRate.wordsPerMinute,
       tag: "TEMPO",
+      icon: Zap,
     },
     {
       title: "Energy Boost",
@@ -37,6 +42,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
         : `Power: ${results.acceleration.segment1Volume}→${results.acceleration.segment2Volume}dB | Tempo: ${results.acceleration.segment1Rate}→${results.acceleration.segment2Rate}WPM`,
       rawValue: results.acceleration.isAccelerating ? 1 : 0,
       tag: "BOOST",
+      icon: TrendingUp,
     },
     {
       title: "Initial Spark",
@@ -45,6 +51,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
       value: `${results.responseTime.responseTimeMs}ms to first sound`,
       rawValue: results.responseTime.responseTimeMs,
       tag: "SPARK",
+      icon: Clock,
     },
     {
       title: "Energy Flow",
@@ -56,32 +63,86 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
           : `${results.pauseManagement.pauseCount} breaks (max ${results.pauseManagement.maxPauseDuration}s)`,
       rawValue: results.pauseManagement.pauseCount,
       tag: "FLOW",
+      icon: Waves,
     },
   ];
+
+  const getScoreColor = (score: number) => {
+    if (score >= 70) return "text-green-500";
+    if (score >= 40) return "text-yellow-500";
+    return "text-red-500";
+  };
 
   return (
     <motion.div className="w-full max-w-md mx-auto px-4 pb-8" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
       {/* Overall Score */}
       <ScoreDisplay score={results.overallScore} emotionalFeedback={results.emotionalFeedback} />
 
-      {/* Metrics */}
+      {/* Summary View */}
       <motion.div
-        className="mt-6"
+        className="mt-6 glass-card p-4"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <h3 className="text-lg font-display font-semibold text-foreground mb-4 flex items-center gap-2">
-          <span className="w-1 h-6 rounded-full gradient-primary" />
-          Voice Energy Breakdown
-        </h3>
-
-        <div className="space-y-3">
-          {metrics.map((metric, index) => (
-            <MetricCard key={metric.title} {...metric} index={index} />
-          ))}
+        <div className="flex justify-between items-center gap-2">
+          {metrics.map((metric) => {
+            const IconComponent = metric.icon;
+            return (
+              <div key={metric.tag} className="flex flex-col items-center gap-1">
+                <IconComponent className={`w-5 h-5 ${getScoreColor(metric.score)}`} />
+                <span className={`text-sm font-bold ${getScoreColor(metric.score)}`}>
+                  {metric.score}
+                </span>
+                <span className="text-[10px] text-muted-foreground">{metric.tag}</span>
+              </div>
+            );
+          })}
         </div>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowDetails(!showDetails)}
+          className="w-full mt-4 text-muted-foreground hover:text-foreground"
+        >
+          {showDetails ? (
+            <>
+              <ChevronUp className="w-4 h-4 mr-1" />
+              Hide Details
+            </>
+          ) : (
+            <>
+              <ChevronDown className="w-4 h-4 mr-1" />
+              View Details
+            </>
+          )}
+        </Button>
       </motion.div>
+
+      {/* Details View */}
+      <AnimatePresence>
+        {showDetails && (
+          <motion.div
+            className="mt-4"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <h3 className="text-lg font-display font-semibold text-foreground mb-4 flex items-center gap-2">
+              <span className="w-1 h-6 rounded-full gradient-primary" />
+              Voice Energy Breakdown
+            </h3>
+
+            <div className="space-y-3">
+              {metrics.map((metric, index) => (
+                <MetricCard key={metric.title} {...metric} index={index} />
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Retry button */}
       <motion.div
