@@ -109,11 +109,11 @@ export function ScoreDisplay({ score, emotionalFeedback }: ScoreDisplayProps) {
           >
             {displayScore}
           </motion.span>
-          <span className="text-muted-foreground text-sm">/100 điểm</span>
+          <span className="text-muted-foreground text-sm">/100 points</span>
         </div>
       </div>
       
-      {/* Feedback text */}
+      {/* Feedback text - English only */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -122,7 +122,6 @@ export function ScoreDisplay({ score, emotionalFeedback }: ScoreDisplayProps) {
         <h2 className={`text-2xl font-display font-bold bg-gradient-to-r ${feedbackColors[emotionalFeedback]} bg-clip-text text-transparent`}>
           {feedbackText[emotionalFeedback].en}
         </h2>
-        <p className="text-muted-foreground">{feedbackText[emotionalFeedback].vi}</p>
       </motion.div>
     </motion.div>
   );
