@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import confetti from 'canvas-confetti';
 
 interface ScoreDisplayProps {
   score: number;
@@ -26,7 +27,43 @@ const feedbackColors = {
 
 export function ScoreDisplay({ score, emotionalFeedback }: ScoreDisplayProps) {
   const [displayScore, setDisplayScore] = useState(0);
-  
+  const [hasTriggeredConfetti, setHasTriggeredConfetti] = useState(false);
+
+  const triggerConfetti = useCallback(() => {
+    // Fire confetti from both sides
+    const colors = ['#00ffff', '#a855f7', '#22c55e', '#facc15'];
+    
+    // Left side burst
+    confetti({
+      particleCount: 80,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0, y: 0.6 },
+      colors,
+    });
+    
+    // Right side burst
+    confetti({
+      particleCount: 80,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1, y: 0.6 },
+      colors,
+    });
+
+    // Center burst with stars
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        spread: 100,
+        origin: { x: 0.5, y: 0.5 },
+        colors,
+        shapes: ['star'],
+        scalar: 1.2,
+      });
+    }, 200);
+  }, []);
+
   useEffect(() => {
     const duration = 1500;
     const steps = 60;
@@ -38,13 +75,19 @@ export function ScoreDisplay({ score, emotionalFeedback }: ScoreDisplayProps) {
       if (current >= score) {
         setDisplayScore(score);
         clearInterval(timer);
+        
+        // Trigger confetti when score animation completes and score > 70
+        if (score > 70 && !hasTriggeredConfetti) {
+          triggerConfetti();
+          setHasTriggeredConfetti(true);
+        }
       } else {
         setDisplayScore(Math.floor(current));
       }
     }, duration / steps);
     
     return () => clearInterval(timer);
-  }, [score]);
+  }, [score, hasTriggeredConfetti, triggerConfetti]);
 
   return (
     <motion.div
