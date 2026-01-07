@@ -35,7 +35,7 @@ const defaultMetrics: MetricConfig[] = [
     name: 'Volume Level',
     nameVi: 'Độ lớn âm thanh',
     icon: <Volume2 className="w-5 h-5" />,
-    weight: 20,
+    weight: 30,
     tag: 'ENERGY',
     tagColor: 'tag-energy',
     thresholds: { min: -40, ideal: -10, max: 0 },
@@ -47,7 +47,7 @@ const defaultMetrics: MetricConfig[] = [
     name: 'Speech Rate',
     nameVi: 'Tốc độ nói',
     icon: <Zap className="w-5 h-5" />,
-    weight: 20,
+    weight: 30,
     tag: 'FLUENCY',
     tagColor: 'tag-fluency',
     thresholds: { min: 80, ideal: 160, max: 220 },
@@ -71,7 +71,7 @@ const defaultMetrics: MetricConfig[] = [
     name: 'Response Time',
     nameVi: 'Tốc độ phản hồi',
     icon: <Clock className="w-5 h-5" />,
-    weight: 15,
+    weight: 10,
     tag: 'READINESS',
     tagColor: 'tag-readiness',
     thresholds: { min: 2000, ideal: 200, max: 0 },
@@ -83,12 +83,12 @@ const defaultMetrics: MetricConfig[] = [
     name: 'Pause Management',
     nameVi: 'Quản lý ngừng nghỉ',
     icon: <Pause className="w-5 h-5" />,
-    weight: 30,
+    weight: 15,
     tag: 'FLUIDITY',
     tagColor: 'tag-fluidity',
-    thresholds: { min: 0, ideal: 4, max: 10 },
-    labels: { low: 'No Pauses', ideal: 'Natural Flow', high: 'Too Many' },
-    unit: 'pauses/min'
+    thresholds: { min: 0, ideal: 0, max: 2.71 },
+    labels: { low: 'Perfect (No Pause)', ideal: 'Fluent', high: 'Critical (>2.71s)' },
+    unit: 's max'
   },
 ];
 
