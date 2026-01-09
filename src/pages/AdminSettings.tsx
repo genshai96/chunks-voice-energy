@@ -98,8 +98,34 @@ const defaultMetrics: MetricConfig[] = [
   },
 ];
 
+// Load saved config from localStorage
+function loadSavedConfig(): MetricConfig[] {
+  try {
+    const saved = localStorage.getItem("metricConfig");
+    if (saved) {
+      const savedConfigs = JSON.parse(saved);
+      // Merge saved values with defaultMetrics (to preserve icons, labels, etc.)
+      return defaultMetrics.map((defaultMetric) => {
+        const savedMetric = savedConfigs.find((s: any) => s.id === defaultMetric.id);
+        if (savedMetric) {
+          return {
+            ...defaultMetric,
+            weight: savedMetric.weight ?? defaultMetric.weight,
+            thresholds: savedMetric.thresholds ?? defaultMetric.thresholds,
+            method: savedMetric.method ?? defaultMetric.method,
+          };
+        }
+        return defaultMetric;
+      });
+    }
+  } catch (e) {
+    console.warn("Failed to load saved config:", e);
+  }
+  return defaultMetrics;
+}
+
 export default function AdminSettings() {
-  const [metrics, setMetrics] = useState<MetricConfig[]>(defaultMetrics);
+  const [metrics, setMetrics] = useState<MetricConfig[]>(loadSavedConfig);
   const [selectedMetric, setSelectedMetric] = useState<string>("volume");
 
   const totalWeight = metrics.reduce((sum, m) => sum + m.weight, 0);
