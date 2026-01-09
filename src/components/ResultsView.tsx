@@ -88,21 +88,22 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
         <div className="flex justify-between items-center gap-4">
           {metrics.map((metric) => {
             const IconComponent = metric.icon;
-            const shortValue = metric.tag === "POWER" 
-              ? `${results.volume.averageDb.toFixed(0)}dB`
-              : metric.tag === "TEMPO"
-              ? `${results.speechRate.wordsPerMinute}WPM`
-              : metric.tag === "BOOST"
-              ? (results.acceleration.isAccelerating ? "↑" : "→")
-              : metric.tag === "SPARK"
-              ? `${results.responseTime.responseTimeMs}ms`
-              : `${results.pauseManagement.pauseCount}`;
+            const shortValue =
+              metric.tag === "POWER"
+                ? `${results.volume.averageDb.toFixed(0)}dB`
+                : metric.tag === "TEMPO"
+                  ? `${results.speechRate.wordsPerMinute}WPM`
+                  : metric.tag === "BOOST"
+                    ? results.acceleration.isAccelerating
+                      ? "↑"
+                      : "→"
+                    : metric.tag === "SPARK"
+                      ? `${results.responseTime.responseTimeMs}ms`
+                      : `${results.pauseManagement.pauseCount}`;
             return (
               <div key={metric.tag} className="flex flex-col items-center gap-1">
                 <IconComponent className={`w-6 h-6 ${getScoreColor(metric.score)}`} />
-                <span className={`text-xl font-bold ${getScoreColor(metric.score)}`}>
-                  {metric.score}
-                </span>
+                <span className={`text-xl font-bold ${getScoreColor(metric.score)}`}>{metric.score}</span>
                 <span className="text-xs text-muted-foreground">{shortValue}</span>
               </div>
             );
@@ -166,7 +167,7 @@ export function ResultsView({ results, onRetry }: ResultsViewProps) {
           className="gradient-primary text-primary-foreground font-semibold px-8 energy-glow"
         >
           <RotateCcw className="w-5 h-5 mr-2" />
-          Thử lại
+          Try again
         </Button>
       </motion.div>
     </motion.div>
