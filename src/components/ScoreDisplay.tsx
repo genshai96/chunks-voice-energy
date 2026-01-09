@@ -65,16 +65,21 @@ export function ScoreDisplay({ score, emotionalFeedback }: ScoreDisplayProps) {
   }, []);
 
   useEffect(() => {
+    // Reset display score when starting animation
+    setDisplayScore(0);
+    
     const duration = 1500;
     const steps = 60;
     const increment = score / steps;
     let current = 0;
+    let animationComplete = false;
     
     const timer = setInterval(() => {
       current += increment;
       if (current >= score) {
         setDisplayScore(score);
         clearInterval(timer);
+        animationComplete = true;
         
         // Trigger confetti when score animation completes and score > 70
         if (score > 70 && !hasTriggeredConfetti) {
@@ -86,8 +91,10 @@ export function ScoreDisplay({ score, emotionalFeedback }: ScoreDisplayProps) {
       }
     }, duration / steps);
     
-    return () => clearInterval(timer);
-  }, [score, hasTriggeredConfetti, triggerConfetti]);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [score]); // Only depend on score to prevent re-triggering
 
   return (
     <motion.div
