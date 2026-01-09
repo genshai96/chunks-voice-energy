@@ -30,8 +30,8 @@ function getConfig(): MetricConfig[] {
 
   // Default config (matches AdminSettings defaults)
   return [
-    { id: "volume", weight: 40, thresholds: { min: -40, ideal: -10, max: 0 } },
-    { id: "speechRate", weight: 40, thresholds: { min: 80, ideal: 140, max: 220 }, method: "energy-peaks" },
+    { id: "volume", weight: 40, thresholds: { min: -35, ideal: -15, max: 0 } },
+    { id: "speechRate", weight: 40, thresholds: { min: 90, ideal: 150, max: 220 }, method: "energy-peaks" },
     { id: "acceleration", weight: 5, thresholds: { min: 0, ideal: 50, max: 100 } },
     { id: "responseTime", weight: 5, thresholds: { min: 2000, ideal: 200, max: 0 } },
     { id: "pauseManagement", weight: 10, thresholds: { min: 0, ideal: 0, max: 2.71 } },
