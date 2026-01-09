@@ -419,6 +419,7 @@ function detectPauses(audioBuffer: Float32Array, sampleRate: number): Pause[] {
   const pauses: Pause[] = [];
   let inPause = false;
   let pauseStart = 0;
+  let speechStarted = false; // Track if speech has started
 
   for (let i = 0; i < audioBuffer.length - windowSize; i += windowSize) {
     const window = audioBuffer.slice(i, i + windowSize);
@@ -427,14 +428,22 @@ function detectPauses(audioBuffer: Float32Array, sampleRate: number): Pause[] {
 
     const isSilent = db < SILENCE_THRESHOLD;
 
-    if (isSilent && !inPause) {
-      inPause = true;
-      pauseStart = i / sampleRate;
-    } else if (!isSilent && inPause) {
-      inPause = false;
-      const duration = i / sampleRate - pauseStart;
-      if (duration >= MIN_PAUSE_DURATION) {
-        pauses.push({ start: pauseStart, duration });
+    // Only start tracking pauses AFTER first speech is detected
+    if (!isSilent && !speechStarted) {
+      speechStarted = true;
+    }
+
+    // Only count pauses that occur AFTER speech has started (mid-speech pauses)
+    if (speechStarted) {
+      if (isSilent && !inPause) {
+        inPause = true;
+        pauseStart = i / sampleRate;
+      } else if (!isSilent && inPause) {
+        inPause = false;
+        const duration = i / sampleRate - pauseStart;
+        if (duration >= MIN_PAUSE_DURATION) {
+          pauses.push({ start: pauseStart, duration });
+        }
       }
     }
   }
