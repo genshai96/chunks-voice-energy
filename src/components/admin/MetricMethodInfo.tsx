@@ -34,15 +34,15 @@ const methodDescriptions: Record<string, {
     title: 'Speech Rate Detection',
     titleVi: 'Phát hiện tốc độ nói',
     icon: <Mic className="w-4 h-4" />,
-    method: 'Energy Peaks / Speech-to-Text',
-    description: 'Detects syllables via energy peaks or uses AI transcription for accurate word count.',
-    descriptionVi: 'Phát hiện âm tiết qua đỉnh năng lượng hoặc sử dụng AI phiên âm để đếm từ chính xác.',
-    formula: 'WPM = (wordCount / duration) × 60',
+    method: 'Energy Peaks / ZCR / Speech-to-Text',
+    description: 'Detects syllables via energy peaks, Zero-Crossing Rate acoustic analysis, or AI transcription.',
+    descriptionVi: 'Phát hiện âm tiết qua đỉnh năng lượng, phân tích Zero-Crossing Rate, hoặc AI phiên âm.',
+    formula: 'WPM = (syllables / duration) × 60 / 1.5',
     details: [
-      'Energy Peaks: Detects syllables from audio energy spikes',
-      'STT (Deepgram): Transcribes audio to text',
-      'Counts words/syllables per minute',
-      'Volume-compensated threshold for quiet speech',
+      'Energy Peaks: Detects syllables from amplitude spikes',
+      'ZCR: Counts signal polarity changes (voiced speech: ZCR 0.02-0.35)',
+      'STT (Deepgram): AI transcription for exact word count',
+      'Volume-compensated thresholds for quiet speech',
       'Returns Words Per Minute (WPM)'
     ]
   },
