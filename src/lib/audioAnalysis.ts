@@ -3,7 +3,7 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // Types for speech rate method
-export type SpeechRateMethod = "energy-peaks" | "deepgram-stt";
+export type SpeechRateMethod = "energy-peaks" | "deepgram-stt" | "zero-crossing-rate";
 
 // Config interface matching admin settings
 export interface MetricConfig {
@@ -213,6 +213,103 @@ export function calculateSpeechRate(
     score: Math.round(Math.max(0, Math.min(100, score))),
     tag: "FLUENCY",
     method: "energy-peaks",
+  };
+}
+
+// Zero-Crossing Rate (ZCR) based Speech Rate Detection
+// Research-backed acoustic method: voiced speech has characteristic ZCR patterns
+// ZCR counts how many times the audio signal crosses zero (changes polarity)
+function detectSyllablesWithZCR(audioBuffer: Float32Array, sampleRate: number): number[] {
+  const frameSize = Math.floor(0.025 * sampleRate); // 25ms frames
+  const hopSize = Math.floor(0.010 * sampleRate); // 10ms hop
+  const minPeakDistance = Math.floor(0.08 * sampleRate / hopSize); // Min 80ms between syllables
+  
+  const frames: { zcr: number; energy: number }[] = [];
+  
+  // Calculate ZCR and energy for each frame
+  for (let i = 0; i < audioBuffer.length - frameSize; i += hopSize) {
+    const frame = audioBuffer.slice(i, i + frameSize);
+    
+    // Zero-Crossing Rate: count sign changes
+    let zeroCrossings = 0;
+    for (let j = 1; j < frame.length; j++) {
+      if ((frame[j] >= 0 && frame[j - 1] < 0) || (frame[j] < 0 && frame[j - 1] >= 0)) {
+        zeroCrossings++;
+      }
+    }
+    const zcr = zeroCrossings / frame.length;
+    
+    // Frame energy (RMS)
+    const energy = Math.sqrt(frame.reduce((sum, s) => sum + s * s, 0) / frame.length);
+    
+    frames.push({ zcr, energy });
+  }
+  
+  if (frames.length === 0) return [];
+  
+  // Normalize energy
+  const maxEnergy = Math.max(...frames.map(f => f.energy));
+  const energyThreshold = maxEnergy * 0.1; // 10% of max energy
+  
+  // Voiced speech detection: moderate ZCR (0.05-0.25) + sufficient energy
+  // High ZCR (>0.3) typically indicates unvoiced/noise
+  // Low ZCR (<0.02) typically indicates silence
+  const syllableFrames: number[] = [];
+  let inSyllable = false;
+  let syllableStart = 0;
+  
+  for (let i = 0; i < frames.length; i++) {
+    const { zcr, energy } = frames[i];
+    const isVoiced = energy > energyThreshold && zcr > 0.02 && zcr < 0.35;
+    
+    if (isVoiced && !inSyllable) {
+      inSyllable = true;
+      syllableStart = i;
+    } else if (!isVoiced && inSyllable) {
+      inSyllable = false;
+      // Record syllable at midpoint
+      const syllableMid = Math.floor((syllableStart + i) / 2);
+      
+      // Check minimum distance from last syllable
+      if (syllableFrames.length === 0 || syllableMid - syllableFrames[syllableFrames.length - 1] >= minPeakDistance) {
+        syllableFrames.push(syllableMid);
+      }
+    }
+  }
+  
+  return syllableFrames;
+}
+
+export function calculateSpeechRateWithZCR(
+  audioBuffer: Float32Array,
+  sampleRate: number,
+  duration: number
+): SpeechRateResult {
+  const config = getMetricConfig("speechRate");
+  const MIN_WPM = config?.thresholds.min ?? 80;
+  const IDEAL_WPM = config?.thresholds.ideal ?? 160;
+  
+  const syllables = detectSyllablesWithZCR(audioBuffer, sampleRate);
+  const syllablesPerSecond = syllables.length / Math.max(duration, 0.1);
+  // Average ~1.5 syllables per word for English
+  const wordsPerMinute = syllablesPerSecond * 60 / 1.5;
+  
+  // Scoring logic (same as other methods)
+  let score: number;
+  if (wordsPerMinute >= IDEAL_WPM) {
+    score = 100;
+  } else if (wordsPerMinute < MIN_WPM) {
+    score = Math.max(0, (wordsPerMinute / MIN_WPM) * 50);
+  } else {
+    score = 50 + ((wordsPerMinute - MIN_WPM) / (IDEAL_WPM - MIN_WPM)) * 50;
+  }
+  
+  return {
+    wordsPerMinute: Math.round(wordsPerMinute),
+    syllablesPerSecond: Math.round(syllablesPerSecond * 10) / 10,
+    score: Math.round(Math.max(0, Math.min(100, score))),
+    tag: "FLUENCY",
+    method: "zero-crossing-rate",
   };
 }
 
@@ -588,6 +685,8 @@ export async function analyzeAudioAsync(
   let speechRate: SpeechRateResult;
   if (method === "deepgram-stt" && audioBase64) {
     speechRate = await calculateSpeechRateWithSTT(audioBase64, duration);
+  } else if (method === "zero-crossing-rate") {
+    speechRate = calculateSpeechRateWithZCR(audioBuffer, sampleRate, duration);
   } else {
     speechRate = calculateSpeechRate(audioBuffer, sampleRate, duration, volume.averageDb);
   }

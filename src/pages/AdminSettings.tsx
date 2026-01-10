@@ -10,7 +10,7 @@ import { ScoreRangeChart } from "@/components/admin/ScoreRangeChart";
 import { MetricMethodInfo } from "@/components/admin/MetricMethodInfo";
 import { toast } from "@/hooks/use-toast";
 
-export type SpeechRateMethod = "energy-peaks" | "deepgram-stt";
+export type SpeechRateMethod = "energy-peaks" | "deepgram-stt" | "zero-crossing-rate";
 
 export interface MetricConfig {
   id: string;
@@ -259,7 +259,13 @@ export default function AdminSettings() {
                           <SelectItem value="energy-peaks">
                             <div className="flex flex-col items-start">
                               <span className="font-medium">Energy Peaks</span>
-                              <span className="text-xs text-muted-foreground">Local analysis (no API)</span>
+                              <span className="text-xs text-muted-foreground">Syllable detection via amplitude peaks</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="zero-crossing-rate">
+                            <div className="flex flex-col items-start">
+                              <span className="font-medium">Zero-Crossing Rate (ZCR)</span>
+                              <span className="text-xs text-muted-foreground">Acoustic voiced speech detection</span>
                             </div>
                           </SelectItem>
                           <SelectItem value="deepgram-stt">
@@ -273,7 +279,9 @@ export default function AdminSettings() {
                       <p className="text-xs text-muted-foreground mt-2">
                         {currentMetric.method === "deepgram-stt"
                           ? "🎯 Uses Deepgram API for accurate word-by-word transcription"
-                          : "⚡ Fast local detection based on audio energy patterns"}
+                          : currentMetric.method === "zero-crossing-rate"
+                          ? "📊 Acoustic analysis detecting voiced speech via signal polarity changes"
+                          : "⚡ Fast local detection based on audio energy amplitude peaks"}
                       </p>
                     </div>
                   )}
